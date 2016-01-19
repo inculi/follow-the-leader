@@ -4,7 +4,7 @@ from googlefinance import getQuotes
 import json
 
 # SET UP MOIRA
-token = moira.get_token('manwholikespie@gmail.com', 'Ilm123321')
+token = moira.get_token('manwholikespie@gmail.com', 'password')
 game = 'hack-the-system'
 
 stocks = moira.get_current_holdings(token, game)
