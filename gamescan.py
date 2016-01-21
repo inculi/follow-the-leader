@@ -13,18 +13,21 @@ from googlefinance import getQuotes
 """
 
 def gameScan(pageurl):
-    # "http://www.marketwatch.com/game/stock-fears/ranking"
+    # url = "http://www.marketwatch.com/game/stock-fears/ranking"
     # setting up BeautifulSoup
     url = pageurl
     r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
 
     # Find the amount of pages, and people that are in the game
-    people = soup.find_all("li", {"class" : "end"})
+    people = soup.find_all("a", {"class" : "fakebutton"})
+
+    print str(people)
 
     # re.search('(?<=-)\w+', 'spam-egg')
-    for item in people:
-        print item
+    # for item in people:
+    #     print item
+
 
     # find ranks, names, returns and urls and place them in lists.
     td_rank = soup.find_all("td", {"class" : "rank"})
