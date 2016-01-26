@@ -4,7 +4,6 @@ import moira
 import requests
 from moira import moira
 from bs4 import BeautifulSoup
-from googlefinance import getQuotes
 
 #Output
 symbols = []
