@@ -6,7 +6,6 @@ from moira import moira
 from bs4 import BeautifulSoup
 from googlefinance import getQuotes
 
-url = "http://www.marketwatch.com/game/stock-fears/portfolio/transactionhistory?name=Dustin%20Lien&p=1354179"
 def getHistory(url):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
@@ -33,16 +32,16 @@ def getHistory(url):
 
             if x == 0:
                 symbols.append(information)
-                if x == 1:
-                    orderdate.append(information)
-                if x == 2:
-                    transdate.append(information)
-                if x == 3:
-                    ordertype.append(information)
-                if x == 4:
-                    orderamount.append(information)
-                if x == 5:
-                    orderprice.append(information)
+            if x == 1:
+                orderdate.append(information)
+            if x == 2:
+                transdate.append(information)
+            if x == 3:
+                ordertype.append(information)
+            if x == 4:
+                orderamount.append(information)
+            if x == 5:
+                orderprice.append(information)
             x += 1
             if x == 6:
                 x = 0
@@ -71,3 +70,6 @@ def getHistory(url):
     print "Order price"
     for item in orderprice:
         print item
+#End of def
+
+getHistory("http://www.marketwatch.com/game/stock-fears/portfolio/transactionhistory?name=Dustin%20Lien&p=1354179")
