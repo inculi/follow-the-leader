@@ -41,7 +41,7 @@ def getGameURLs(url):
             for page in xrange (0, 100, 10):
                 getGames(url[:index] + 'index=' + str(page) + '&' + url[index:])
 
-        for item in games:
-            print item
+    for item in games:
+        print item
 
 getGameURLs("http://www.marketwatch.com/game/find?sort=NumberOfPlayers&descending=True")
