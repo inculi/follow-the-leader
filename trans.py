@@ -76,28 +76,29 @@ def getHistory(url):
             if x == 6:
                 x = 0
 
-    print "Stock ticker"
-    for item in symbols:
-        print item
-
-    print "Order date"
-    for item in orderdate:
-        print item
-
-    print "Transaction date"
-    for item in transdate:
-        print item
-
-    print "Order date"
-    for item in ordertype:
-        print item
-
-    print "Order amount"
-    for item in orderamount:
-        print item
-
-    print "Order price"
-    for item in orderprice:
-        print item
 
 getURLs("http://www.marketwatch.com/game/stock-fears/portfolio/transactionhistory?name=Dustin%20Lien&p=1354179")
+
+print "Stock ticker"
+for item in symbols:
+    print item
+
+print "Order date"
+for item in orderdate:
+    print item
+
+print "Transaction date"
+for item in transdate:
+    print item
+
+print "Order date"
+for item in ordertype:
+    print item
+
+print "Order amount"
+for item in orderamount:
+    print item
+
+print "Order price"
+for item in orderprice:
+    print item
