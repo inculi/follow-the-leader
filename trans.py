@@ -2,6 +2,7 @@ import re
 import json
 import moira
 import requests
+import pandas as pd
 from moira import moira
 from bs4 import BeautifulSoup
 
@@ -13,92 +14,72 @@ ordertype = []
 orderamount = []
 orderprice = []
 
-
-
-def getURLs(url):
-    page = 0
-    index = url.find('name=')
-
-    r = requests.get(url)
+def getHistory(inputUrl):
+    r = requests.get(inputUrl)
     soup = BeautifulSoup(r.content, "html.parser")
 
-    people = soup.find_all("p")
-    for item in people:
-        if item.parent.name == 'nav':
-            re1='.*?'	# Non-greedy match on filler
-            re2='\\d+'	# Uninteresting: int
-            re3='.*?'	# Non-greedy match on filler
-            re4='\\d+'	# Uninteresting: int
-            re5='.*?'	# Non-greedy match on filler
-            re6='(\\d+)'	# Integer Number 1
+    # Ticker Symbols
+    appendData(0,1,symbols,'str', inputUrl)
 
-            rg = re.compile(re1+re2+re3+re4+re5+re6,re.IGNORECASE|re.DOTALL)
-            m = rg.search(item.text)
-            if m:
-                int1=m.group(1)
-                total = int(int1)
-            for page in xrange (0,total,10):
-                getHistory(url[:index] + 'index=' + str(page) + '&' + url[index:])
+    # Order Date and Time
+    appendData(1,2,orderdate,'str', inputUrl)
+
+    # Transaction Date and Time
+    appendData(2,3,transdate,'str', inputUrl)
+
+    # Order Type
+    appendData(3,4,ordertype,'str', inputUrl)
+
+    # Order Amount (number of shares)
+    appendData(4,5,orderamount,'float', inputUrl)
+
+    # Order Price
+    appendData(5,6,orderprice,'money', inputUrl)
 
 
-
-def getHistory(url):
-    r = requests.get(url)
+def appendData(startColumn, finishColumn, listName, dataType, inputUrl):
+    # basic string with no float() or optional replacements
+    r = requests.get(inputUrl)
     soup = BeautifulSoup(r.content, "html.parser")
-    tickers = []
 
-    x = 0
+    if dataType == 'str':
+        for row in soup.findAll('table')[0].tbody.findAll('tr'):
+            data_column = row.findAll('td')[startColumn:finishColumn]
+            for item in data_column:
+                listName.append(item.text.replace("\t", "").replace("\r", "").replace("\n", ""))
 
-    for item in soup.findAll('table')[0].tbody.findAll('td'):
-        if item.find(class_='highlight condensed'):
-	        break
-        tickers.append(item)
+    # money string with dollar signs and commas
+    if dataType == 'money':
+        for row in soup.findAll('table')[0].tbody.findAll('tr'):
+            data_column = row.findAll('td')[startColumn:finishColumn]
+            for item in data_column:
+                listName.append(float(item.text.replace("\t", "").replace("\r", "").replace("\n", "").replace("$","").replace(",","")))
 
-    x = 0
-    for item in tickers:
-        if item.parent.name == "tr":
-            good_text = item.text.replace("\t", "").replace("\r", "").replace("\n", "")
-            information = good_text.rstrip().split('\n')
+    # percentages
+    if dataType == 'percent':
+        for row in soup.findAll('table')[0].tbody.findAll('tr'):
+            data_column = row.findAll('td')[startColumn:finishColumn]
+            for item in data_column:
+                listName.append(float(item.text.replace("\t", "").replace("\r", "").replace("\n", "").replace("%","").replace(",","")))
 
-            if x == 0:
-                symbols.append(information)
-            if x == 1:
-                orderdate.append(information)
-            if x == 2:
-                transdate.append(information)
-            if x == 3:
-                ordertype.append(information)
-            if x == 4:
-                orderamount.append(information)
-            if x == 5:
-                orderprice.append(information)
-            x += 1
-            if x == 6:
-                x = 0
+    # number
+    if dataType == 'float':
+        for row in soup.findAll('table')[0].tbody.findAll('tr'):
+            data_column = row.findAll('td')[startColumn:finishColumn]
+            for item in data_column:
+                listName.append(float(item.text.replace("\t", "").replace("\r", "").replace("\n", "").replace(",","")))
 
+getHistory("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
 
-getURLs("http://www.marketwatch.com/game/stock-fears/portfolio/transactionhistory?name=Dustin%20Lien&p=1354179")
+orderd = {
+    'Order date' : pd.Series(orderdate, index=orderdate),
+    'Transaction Date' : pd.Series(transdate, index=orderdate),
+    'Stock ticker' : pd.Series(symbols, index=orderdate),
+    'Order type' : pd.Series(ordertype, index=orderdate),
+    'Order amount' : pd.Series(orderamount, index=orderdate),
+    'Order price' : pd.Series(orderprice, index=orderdate)
+    }
 
-print "Stock ticker"
-for item in symbols:
-    print item
-
-print "Order date"
-for item in orderdate:
-    print item
-
-print "Transaction date"
-for item in transdate:
-    print item
-
-print "Order date"
-for item in ordertype:
-    print item
-
-print "Order amount"
-for item in orderamount:
-    print item
-
-print "Order price"
-for item in orderprice:
-    print item
+orderdf = pd.DataFrame(orderd)
+print orderdf
+# orderdf.to_csv("dataframe2.csv")
