@@ -49,8 +49,8 @@ def getHistory(url):
 
     x = 0
 
-    for item in soup.find_all("td"):
-        if item.find(class_='pubDate'):
+    for item in soup.findAll('table')[0].tbody.findAll('td'):
+        if item.find(class_='highlight condensed'):
 	        break
         tickers.append(item)
 
@@ -76,7 +76,6 @@ def getHistory(url):
             if x == 6:
                 x = 0
 
-
     print "Stock ticker"
     for item in symbols:
         print item
@@ -100,6 +99,5 @@ def getHistory(url):
     print "Order price"
     for item in orderprice:
         print item
-
 
 getURLs("http://www.marketwatch.com/game/stock-fears/portfolio/transactionhistory?name=Dustin%20Lien&p=1354179")
