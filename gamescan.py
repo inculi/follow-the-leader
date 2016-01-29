@@ -4,6 +4,7 @@ import time
 import moira
 import random
 import requests
+import playtime as play # the function I wrote to find the days played of a player
 import numpy as np
 import pandas as pd
 from moira import moira
@@ -86,6 +87,7 @@ networths = []
 total_cash_returns = []
 todays_percent_returns = []
 amtOfTrades = []
+numDaysPlayed = []
 
 def pageScan(pageurl):
     # url = "http://www.marketwatch.com/game/bijans/ranking"
@@ -135,7 +137,10 @@ def pageScan(pageurl):
         url = 'http://marketwatch.com' + str(item.get('href'))
         player_urls.append(url)
         transaction_urls.append(url.replace("holdings", "transactionhistory"))
-        performance_urls.append(url.replace("holdings", "performance"))
+        performanceString = url.replace("holdings", "performance")
+        performance_urls.append(performanceString)
+        numDaysPlayed.append(play.playTime(performanceString))
+
 
     for row in soup.findAll('table')[0].tbody.findAll('tr'):
         trades_column = row.findAll('td')[5:6]
@@ -223,51 +228,10 @@ d = {
     'Trades' : pd.Series(amtOfTrades, index=ranks),
     'Player URL' : pd.Series(player_urls, index=ranks),
     'Transaction URL' : pd.Series(transaction_urls, index=ranks),
-    'Performance URL' : pd.Series(performance_urls, index=ranks)
+    'Performance URL' : pd.Series(performance_urls, index=ranks),
+    'Days Played' : pd.Series(numDaysPlayed, index=ranks)
     }
 
 df = pd.DataFrame(d)
 print df
-df.to_csv("dataframe2.csv")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#
+df.to_csv("dataframe3.csv")
