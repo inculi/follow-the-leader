@@ -69,6 +69,21 @@ def appendData(startColumn, finishColumn, listName, dataType, inputUrl):
             for item in data_column:
                 listName.append(float(item.text.replace("\t", "").replace("\r", "").replace("\n", "").replace(",","")))
 
+
+
+def getSymbols():
+    return symbols
+def getOrderdate():
+    return orderdate
+def getTransdate():
+    return transdate
+def getOrdertype():
+    return ordertype
+def getOrderamount():
+    return orderamount
+def getOrderprice():
+    return orderprice
+
 getHistory("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
 
 orderd = {
