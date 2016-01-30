@@ -4,6 +4,7 @@ import moira
 import requests
 import pandas as pd
 from moira import moira
+import mmutils as mm
 from bs4 import BeautifulSoup
 
 #Output
@@ -19,70 +20,22 @@ def getHistory(inputUrl):
     soup = BeautifulSoup(r.content, "html.parser")
 
     # Ticker Symbols
-    appendData(0,1,symbols,'str', inputUrl)
+    mm.appendData(0,1,symbols,'str', inputUrl)
 
     # Order Date and Time
-    appendData(1,2,orderdate,'str', inputUrl)
+    mm.appendData(1,2,orderdate,'str', inputUrl)
 
     # Transaction Date and Time
-    appendData(2,3,transdate,'str', inputUrl)
+    mm.appendData(2,3,transdate,'str', inputUrl)
 
     # Order Type
-    appendData(3,4,ordertype,'str', inputUrl)
+    mm.appendData(3,4,ordertype,'str', inputUrl)
 
     # Order Amount (number of shares)
-    appendData(4,5,orderamount,'float', inputUrl)
+    mm.appendData(4,5,orderamount,'float', inputUrl)
 
     # Order Price
-    appendData(5,6,orderprice,'money', inputUrl)
-
-
-def appendData(startColumn, finishColumn, listName, dataType, inputUrl):
-    # basic string with no float() or optional replacements
-    r = requests.get(inputUrl)
-    soup = BeautifulSoup(r.content, "html.parser")
-
-    if dataType == 'str':
-        for row in soup.findAll('table')[0].tbody.findAll('tr'):
-            data_column = row.findAll('td')[startColumn:finishColumn]
-            for item in data_column:
-                listName.append(item.text.replace("\t", "").replace("\r", "").replace("\n", ""))
-
-    # money string with dollar signs and commas
-    if dataType == 'money':
-        for row in soup.findAll('table')[0].tbody.findAll('tr'):
-            data_column = row.findAll('td')[startColumn:finishColumn]
-            for item in data_column:
-                listName.append(float(item.text.replace("\t", "").replace("\r", "").replace("\n", "").replace("$","").replace(",","")))
-
-    # percentages
-    if dataType == 'percent':
-        for row in soup.findAll('table')[0].tbody.findAll('tr'):
-            data_column = row.findAll('td')[startColumn:finishColumn]
-            for item in data_column:
-                listName.append(float(item.text.replace("\t", "").replace("\r", "").replace("\n", "").replace("%","").replace(",","")))
-
-    # number
-    if dataType == 'float':
-        for row in soup.findAll('table')[0].tbody.findAll('tr'):
-            data_column = row.findAll('td')[startColumn:finishColumn]
-            for item in data_column:
-                listName.append(float(item.text.replace("\t", "").replace("\r", "").replace("\n", "").replace(",","")))
-
-
-
-def getSymbols():
-    return symbols
-def getOrderdate():
-    return orderdate
-def getTransdate():
-    return transdate
-def getOrdertype():
-    return ordertype
-def getOrderamount():
-    return orderamount
-def getOrderprice():
-    return orderprice
+    mm.appendData(5,6,orderprice,'money', inputUrl)
 
 getHistory("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
 
