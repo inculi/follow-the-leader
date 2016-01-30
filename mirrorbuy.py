@@ -16,12 +16,17 @@ game = 'meisenheimer'
 
 #Set filename
 filename = "history.txt"
+#Instantiate mynet
+mynet = 0
 #Log in to marketwatch
 token = moira.get_token(username, password)
 #Get user portfolio
-portfolio = moira.get_portfolio_data(token, game)
-#Get net worth from portfolio
-mynet = portfolio["net_worth"]
+try:
+    portfolio = moira.get_portfolio_data(token, game)
+    #Get net worth from portfolio
+    mynet = portfolio["net_worth"]
+except:
+    mynet = 1000000
 
 symbols = t.getSymbols()
 orderdate = t.getOrderdate()
