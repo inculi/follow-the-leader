@@ -2,6 +2,7 @@ import re
 import json
 import moira
 import requests
+import os
 import pandas as pd
 from moira import moira
 import mmutils as mm
@@ -50,12 +51,25 @@ def getOrderamount():
 def getOrderprice():
     return orderprice
 
-getHistory("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
+url = "http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199"
+getHistory(url)
+
+name = url.rsplit("?name=", 1)[1]
+name = name.rsplit("&p=", 1)[0]
+name = name.replace("%20", " ")
+print name
+
+"""
+#Check if file exists, if not, create one
+if not os.path.isfile(filename):
+    print "File found, deleting file"
+    open(filename, 'w').close()
+"""
 
 orderd = {
+    'Stock ticker' : pd.Series(symbols, index=orderdate),
     'Order date' : pd.Series(orderdate, index=orderdate),
     'Transaction Date' : pd.Series(transdate, index=orderdate),
-    'Stock ticker' : pd.Series(symbols, index=orderdate),
     'Order type' : pd.Series(ordertype, index=orderdate),
     'Order amount' : pd.Series(orderamount, index=orderdate),
     'Order price' : pd.Series(orderprice, index=orderdate)
@@ -63,4 +77,4 @@ orderd = {
 
 orderdf = pd.DataFrame(orderd)
 print orderdf
-# orderdf.to_csv("dataframe2.csv")
+orderdf.to_csv(name + " transactions.csv")
