@@ -20,13 +20,13 @@ filename = "history.txt"
 mynet = 0
 #Log in to marketwatch
 token = moira.get_token(username, password)
-#Get user portfolio
+#Try to get user portfolio, if not, assume it is 1000000
 try:
     portfolio = moira.get_portfolio_data(token, game)
     #Get net worth from portfolio
     mynet = portfolio["net_worth"]
 except:
-    mynet = 1000000
+    mynet = 1000000.00
 
 symbols = t.getSymbols()
 orderdate = t.getOrderdate()
@@ -63,7 +63,40 @@ def writeData():
         text_file.write(str(item) + "\n")
     text_file.close()
 
+def readData():
+    fileout = []
+    readsymbols = []
+    readorderdate = []
+    readtransdate = []
+    readordertype = []
+    readorderamount = []
+    readorderprice = []
+    print 'Begin read'
+    f = open(filename)
+    for line in iter(f):
+        fileout.append(line)
+    f.close()
+    for x in range(0, len(fileout) / 10):
+        readsymbols.append(fileout[x].strip())
 
+    print 'readsymbols'
+    for item in readsymbols:
+        print item
+    print 'readorderdate'
+    for item in readorderdate:
+        print item
+    print 'readtransdate'
+    for item in readtransdate:
+        print item
+    print 'readordertype'
+    for item in readordertype:
+        print item
+    print 'readorderamount'
+    for item in readorderamount:
+        print item
+    print 'readorderprice'
+    for item in readorderprice:
+        print item
 
 #Check if file exists, if not, create one
 if not os.path.isfile(filename):
@@ -74,6 +107,8 @@ if not os.path.isfile(filename):
 if os.stat(filename).st_size == 0:
     print "File empty, writing base information"
     writeData()
+
+readData()
 
 
 
