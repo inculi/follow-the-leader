@@ -2,16 +2,28 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-games = []
+temp = {'game' : [], 'date' : []}
+games = {'game' : [], 'date' : []}
 
 def getGames(url):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
     index = url.find('sort=')
     for item in soup.find_all("td", {'class' : 'name'}):
-        #print item
-        out = str(item).rsplit("href=\"/game/", 1)[1]
-        games.append(out.rsplit("\" title", 1)[0])
+        out = (str(item).rsplit("href=\"/game/", 1)[1]).rsplit("\" title", 1)[0]
+        temp['game'].append(out)
+
+    for item in soup.find_all("td", {'class' : 'enddate'}):
+        out = (str(item).rsplit("enddate\">", 1)[1]).rsplit("</td>", 1)[0]
+        temp['date'].append(out)
+
+def removeOld():
+    for x in range(0, len(temp['game'])):
+        if "days" in temp['date'][x]:
+            if int(temp['date'][x].rsplit(" days", 1)[0]) > 7:
+                print int(temp['date'][x].rsplit(" days", 1)[0])
+                games['game'].append(temp['game'][x])
+                games['date'].append(temp['date'][x])
 
 def getGameURLs(url):
     r = requests.get(url)
@@ -38,7 +50,10 @@ def getGameURLs(url):
             for page in xrange (0, 100, 10):
                 getGames(url[:index] + 'index=' + str(page) + '&' + url[index:])
 
-    for item in games:
-        print item
-
 getGameURLs("http://www.marketwatch.com/game/find?sort=NumberOfPlayers&descending=True")
+removeOld()
+
+for item in games['game']:
+    print item
+for item in games['date']:
+    print item
