@@ -1,8 +1,5 @@
 import re
-import json
-import moira
 import requests
-from moira import moira
 from bs4 import BeautifulSoup
 
 games = []

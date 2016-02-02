@@ -1,13 +1,7 @@
 import re
-import json
-import time
-import moira
-import random
 import requests
 import playtime as play # the function I wrote to find the days played of a player
-import numpy as np
 import pandas as pd
-from moira import moira
 from bs4 import BeautifulSoup
 #from googlefinance import getQuotes
 

@@ -1,10 +1,4 @@
-import re
-import json
-import moira
-import time
-import requests
 from moira import moira
-from bs4 import BeautifulSoup
 import login as l
 
 

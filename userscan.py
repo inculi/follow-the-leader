@@ -1,11 +1,4 @@
-import re
-import json
-import time
-import moira
 import requests
-import pandas as pd
-import numpy as np
-from moira import moira
 from bs4 import BeautifulSoup
 
 """

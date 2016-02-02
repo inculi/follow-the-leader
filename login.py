@@ -1,11 +1,5 @@
-import re
-import json
-import moira
-import time
-import requests
 import os
 from moira import moira
-from bs4 import BeautifulSoup
 
 def login():
     filename = os.path.expanduser('~/user.txt')

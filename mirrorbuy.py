@@ -1,10 +1,6 @@
-import re
-import json
 import moira
-import requests
 import os
 from moira import moira
-from bs4 import BeautifulSoup
 import trans as t
 
 t.getHistory("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")

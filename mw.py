@@ -1,7 +1,5 @@
 from moira import moira
 import time
-from googlefinance import getQuotes
-import json
 import login as l
 
 # SET UP MOIRA
