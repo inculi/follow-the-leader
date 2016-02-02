@@ -1,7 +1,14 @@
 import re
+import json
+import time
+import moira
+import random
 import requests
 import playtime as play # the function I wrote to find the days played of a player
+import numpy as np
 import pandas as pd
+# import userscan as user
+from moira import moira
 from bs4 import BeautifulSoup
 #from googlefinance import getQuotes
 
@@ -191,7 +198,7 @@ def getGameURLs(url):
 
 
 ### MAIN FUNCTION
-getGameURLs("http://www.marketwatch.com/game/find?sort=NumberOfPlayers&descending=True")
+# getGameURLs("http://www.marketwatch.com/game/find?sort=NumberOfPlayers&descending=True")
 
 gameCountIndex = 0
 for game in games:
@@ -200,32 +207,52 @@ for game in games:
     gameScan(game)
 del gameCountIndex
 
+gameScan("hockinson-4")
+
 # print our findings
-print("\n\nRanks:")
+print("\nRanks:")
 print(len(ranks))
-print("\n\nNames:")
+print("\nNames:")
 print(len(names))
-print("\n\nCash Returns:")
+print("\nCash Returns:")
 print(len(total_cash_returns))
-print("\n\nPercent Returns:")
+print("\nPercent Returns:")
 print(len(todays_percent_returns))
-print("\n\nPlayer URLs:")
+print("\nPlayer URLs:")
 print(len(player_urls))
-print("\n\Performance URLs:")
+print("\nPerformance URLs:")
 print(len(performance_urls))
 
+# transform lists into Series
+names_series = pd.Series(names, index=ranks)
+networths_series = pd.Series(networths, index=ranks)
+todays_percent_returns_series = pd.Series(todays_percent_returns, index=ranks)
+total_cash_returns_series = pd.Series(total_cash_returns, index=ranks)
+amtOfTrades_series = pd.Series(amtOfTrades, index=ranks)
+player_urls_series = pd.Series(player_urls, index=ranks)
+transaction_urls_series = pd.Series(transaction_urls, index=ranks)
+performance_urls_series = pd.Series(performance_urls, index=ranks)
+numDaysPlayed_series = pd.Series(numDaysPlayed, index=ranks)
+
+
 d = {
-    'Name' : pd.Series(names, index=ranks),
-    'Net Worth' : pd.Series(networths, index=ranks),
-    'Today\'s Returns' : pd.Series(todays_percent_returns, index=ranks),
-    'Total Cash Returns' : pd.Series(total_cash_returns, index=ranks),
-    'Trades' : pd.Series(amtOfTrades, index=ranks),
-    'Player URL' : pd.Series(player_urls, index=ranks),
-    'Transaction URL' : pd.Series(transaction_urls, index=ranks),
-    'Performance URL' : pd.Series(performance_urls, index=ranks),
-    'Days Played' : pd.Series(numDaysPlayed, index=ranks)
+    'Name' : names_series,
+    'Net Worth' : networths_series,
+    'Today\'s Returns' : todays_percent_returns_series,
+    'Total Cash Returns' : total_cash_returns_series,
+    'Trades' : amtOfTrades_series,
+    'Player URL' : player_urls_series,
+    'Transaction URL' : transaction_urls_series,
+    'Performance URL' : performance_urls_series,
+    'Days Played' : numDaysPlayed_series
     }
 
 df = pd.DataFrame(d)
+
+# Filter out those with negative returns and with barely any data
+df = df[df['Total Cash Returns'] > 0]
+df = df[df['Days Played'] > 0]
+df = df[df['Trades'] > 1]
+
 print df
-df.to_csv("dataframe3.csv")
+df.to_csv("dataframe4.csv")
