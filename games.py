@@ -21,9 +21,11 @@ def removeOld():
     for x in range(0, len(temp['game'])):
         if "days" in temp['date'][x]:
             if int(temp['date'][x].rsplit(" days", 1)[0]) > 7:
-                print int(temp['date'][x].rsplit(" days", 1)[0])
+                # print int(temp['date'][x].rsplit(" days", 1)[0])
                 games['game'].append(temp['game'][x])
                 games['date'].append(temp['date'][x])
+
+    return games['game']
 
 def getGameURLs(url):
     r = requests.get(url)
@@ -47,13 +49,5 @@ def getGameURLs(url):
             if m:
                 int1=m.group(1)
                 total = int(int1)
-            for page in xrange (0, 100, 10):
+            for page in xrange (0, 145, 10): #145 because some are expired
                 getGames(url[:index] + 'index=' + str(page) + '&' + url[index:])
-
-getGameURLs("http://www.marketwatch.com/game/find?sort=NumberOfPlayers&descending=True")
-removeOld()
-
-for item in games['game']:
-    print item
-for item in games['date']:
-    print item
