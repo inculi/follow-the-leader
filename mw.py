@@ -2,9 +2,10 @@ from moira import moira
 import time
 from googlefinance import getQuotes
 import json
+import login as l
 
 # SET UP MOIRA
-token = moira.get_token('email@email.com', 'password')
+token = l.login()
 game = 'meisenheimer'
 
 
