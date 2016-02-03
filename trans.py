@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
-from moira import moira
 import mmutils as mm
+import os.path
 from bs4 import BeautifulSoup
 
 #Output
@@ -53,7 +53,6 @@ getHistory(url)
 name = url.rsplit("?name=", 1)[1]
 name = name.rsplit("&p=", 1)[0]
 name = name.replace("%20", " ")
-print name
 
 """
 #Check if file exists, if not, create one
@@ -63,14 +62,24 @@ if not os.path.isfile(filename):
 """
 
 orderd = {
-    'Stock ticker' : pd.Series(symbols, index=orderdate),
-    'Order date' : pd.Series(orderdate, index=orderdate),
-    'Transaction Date' : pd.Series(transdate, index=orderdate),
-    'Order type' : pd.Series(ordertype, index=orderdate),
-    'Order amount' : pd.Series(orderamount, index=orderdate),
-    'Order price' : pd.Series(orderprice, index=orderdate)
+    'name' : pd.Series(name, index=orderdate),
+    'symbol' : pd.Series(symbols, index=orderdate),
+    'orderdate' : pd.Series(orderdate, index=orderdate),
+    'transdate' : pd.Series(transdate, index=orderdate),
+    'ordertype' : pd.Series(ordertype, index=orderdate),
+    'orderamount' : pd.Series(orderamount, index=orderdate),
+    'orderprice' : pd.Series(orderprice, index=orderdate)
     }
 
-orderdf = pd.DataFrame(orderd)
-print orderdf
-orderdf.to_csv(name + " transactions.csv")
+def getTrans():
+    getHistory(url)
+    orderdf = pd.DataFrame(orderd)
+    if os.path.isfile('transactions.csv'):
+        old = pd.read_csv('transactions.csv')
+        new = pd.merge(orderdf, old)
+        new.drop_duplicates(['orderdate'], keep='last')
+        #print orderdf
+        new.to_csv('transactions.csv')
+    else:
+        orderdf.to_csv('transactions.csv')
+getTrans()

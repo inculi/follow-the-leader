@@ -2,18 +2,26 @@ import moira
 import os
 from moira import moira
 import trans as t
+import pandas as pd
+import mmutils
 
-t.getHistory("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
-
-
+toDo = {'symbol' : [], 'orderdate' : [], 'transdate' : [], 'ordertype' : [], 'orderamount' : [], 'orderprice' : []}
 username = 'labresearch9@gmail.com'
 password = 'qazwsxedcrf'
 game = 'meisenheimer'
-
-#Set filename
-filename = "history.txt"
+filename = "transactions.csv"
 #Instantiate mynet
 mynet = 0
+symbols = []
+orderdate = []
+transdate = []
+ordertype = []
+orderamount = []
+orderprice = []
+allitems = []
+
+t.getHistory("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
+
 #Log in to marketwatch
 token = moira.get_token(username, password)
 #Try to get user portfolio, if not, assume it is 1000000
@@ -24,89 +32,62 @@ try:
 except:
     mynet = 1000000.00
 
-symbols = t.getSymbols()
-orderdate = t.getOrderdate()
-transdate = t.getTransdate()
-ordertype = t.getOrdertype()
-orderamount = t.getOrderamount()
-orderprice = t.getOrderprice()
-allitems = []
 
-def writeData():
-    print "Begin append"
-    for item in symbols:
-        print "Appending symbol"
-        allitems.append(item)
-    for item in orderdate:
-        print "Appending orderdate"
-        allitems.append(item)
-    for item in transdate:
-        print "Appending transdate"
-        allitems.append(item)
-    for item in ordertype:
-        print "Appending ordertype"
-        allitems.append(item)
-    for item in orderamount:
-        print "Appending orderamount"
-        allitems.append(item)
-    for item in orderprice:
-        print "Appending orderprice"
-        allitems.append(item)
+dic = pd.read_csv(filename).to_dict()
 
-    print "Begin writing"
-    text_file = open(filename, "w")
-    for item in allitems:
-        text_file.write(str(item) + "\n")
-    text_file.close()
+
+def checkNew(variable):
+    if len(dic[variable]) > 10:
+        for x in range(0, len(dic[variable] - 10)):
+            toDo[variable][x].append(dic[variable][x + 10])
+        doTransaction()
+
+def doTransaction():
+    if toDo['symbol']:
+        for x in range(0, toDo['symbol']):
+            #toDo['symbol'][x]
+            #toDo['orderamount'][x]
+            print 'moira.order(token, ' + game + ', ' + toDo['ordertype'][x] + ', STOCK-XNAS-' + toDo['symbol'][x].upper() + ', ' + float(toDo['orderamount'][x]) + ')'
+            #moira.order(token, 'foo', 'Sell', 'STOCK-XNAS-GRPN', 100)
+            exit()
+        toDo = {'symbol' : [], 'orderdate' : [], 'transdate' : [], 'ordertype' : [], 'orderamount' : [], 'orderprice' : []}
+        readData()
 
 def readData():
-    fileout = []
-    readsymbols = []
-    readorderdate = []
-    readtransdate = []
-    readordertype = []
-    readorderamount = []
-    readorderprice = []
-    print 'Begin read'
-    f = open(filename)
-    for line in iter(f):
-        fileout.append(line)
-    f.close()
-    for x in range(0, len(fileout) / 10):
-        readsymbols.append(fileout[x].strip())
-
-    print 'readsymbols'
-    for item in readsymbols:
-        print item
-    print 'readorderdate'
-    for item in readorderdate:
-        print item
-    print 'readtransdate'
-    for item in readtransdate:
-        print item
-    print 'readordertype'
-    for item in readordertype:
-        print item
-    print 'readorderamount'
-    for item in readorderamount:
-        print item
-    print 'readorderprice'
-    for item in readorderprice:
-        print item
-
-#Check if file exists, if not, create one
-if not os.path.isfile(filename):
-    print "File not found, creating file"
-    open(filename, 'w').close()
-
-#Check if file is empty
-if os.stat(filename).st_size == 0:
-    print "File empty, writing base information"
-    writeData()
+    t.getTrans()
+    for x in range(0, len(dic['symbol'])):
+        symbols.append(dic['symbol'][x])
+    for x in range(0, len(dic['orderdate'])):
+        symbols.append(dic['orderdate'][x])
+    for x in range(0, len(dic['transdate'])):
+        symbols.append(dic['transdate'][x])
+    for x in range(0, len(dic['ordertype'])):
+        symbols.append(dic['ordertype'][x])
+    for x in range(0, len(dic['orderamount'])):
+        symbols.append(dic['orderamount'][x])
+    for x in range(0, len(dic['orderprice'])):
+        symbols.append(dic['orderprice'][x])
 
 readData()
 
+while True:
+    checkNew('symbol')
+    checkNew('orderdate')
+    checkNew('transdate')
+    checkNew('ordertype')
+    checkNew('orderamount')
+    checkNew('orderprice')
+    readData()
+    print todo['symbol']
 
+"""
+    mmutils.printAll(symbols)
+    mmutils.printAll(orderdate)
+    mmutils.printAll(transdate)
+    mmutils.printAll(ordertype)
+    mmutils.printAll(orderamount)
+    mmutils.printAll(orderprice)
+"""
 
 """
 hisnet = 295988.97

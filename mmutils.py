@@ -42,3 +42,6 @@ def appendData(startColumn, finishColumn, listName, dataType, inputUrl):
             data_column = row.findAll('td')[startColumn:finishColumn]
             for item in data_column:
                 listName.append(float(item.text.replace("\t", "").replace("\r", "").replace("\n", "").replace(",","")))
+def printAll(variable):
+    for item in variable:
+        print item
