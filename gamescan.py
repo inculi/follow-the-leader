@@ -161,7 +161,9 @@ def gameScan(gameName):
 ### MAIN FUNCTION
 game.getGameURLs("http://www.marketwatch.com/game/find?sort=NumberOfPlayers&descending=True")
 games = game.removeOld()
+games = set(games) # remove duplicates
 
+# begin scanning games and their users
 gameCountIndex = 0
 for game in games:
     gameCountIndex += 1
@@ -215,25 +217,25 @@ df = df[df['Days Played'] > 0]
 df = df[df['Trades'] > 1]
 
 print df
-df.to_csv("dataframe1.csv")
+df.to_csv("unsorted.csv")
 
 ### Perform some calculations on the remaining users
 df['total percent returns'] = (df['Total Cash Returns'] / (df['Net Worth'] - df['Total Cash Returns']) * 100)
 df = df.sort_values(by='total percent returns', ascending=False)
 # only take the top 1000 users
 df = df[:1000]
-df.to_csv("dataframe2.csv")
+df.to_csv("top 1000.csv")
 
 # -----
 df['total percent returns per day'] = df['total percent returns'] / df['Days Played']
 df = df.sort_values(by='total percent returns per day', ascending=False)
 df = df[:500]
-df.to_csv("dataframe3.csv")
+df.to_csv("top 500.csv")
 
 # -----
 df['trades per day'] = df['Trades'] / df['Days Played']
 df['percent returns per trade'] = df['total percent returns'] / df['Trades']
 df = df.sort_values(by='trades per day', ascending=False)
 df = df[:250]
-df.to_csv("dataframe4.csv")
+df.to_csv("top 250.csv")
 #
