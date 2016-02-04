@@ -204,7 +204,7 @@ numDaysPlayed_series = pd.Series(numDaysPlayed, index=ranks)
 totals_series = pd.Series(totals, index=ranks)
 
 d = {
-    'Rank' : ranks_series
+    'Rank' : ranks_series,
     'Name' : names_series,
     'Net Worth' : networths_series,
     'Today\'s Returns' : todays_percent_returns_series,
