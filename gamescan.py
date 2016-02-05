@@ -56,8 +56,6 @@ def pageCounter(gameName):
                 int1=m.group(1)
                 total = int(int1)
                 print("There are " + str(total) + " players in the game.")
-                for x in xrange(0,int(round(((1.0/3.0)*total)))):
-                    totals.append(total)
 
     # find the URLs of all the pages of a game
     for x in xrange (0,int(round(((1.0/3.0)*total))),10):
