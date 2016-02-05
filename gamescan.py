@@ -56,7 +56,7 @@ def pageCounter(gameName):
                 int1=m.group(1)
                 total = int(int1)
                 print("There are " + str(total) + " players in the game.")
-                for players in total:
+                for x in xrange(0,total):
                     totals.append(total)
 
     # find the URLs of all the pages of a game
@@ -149,8 +149,6 @@ def pageScan(pageurl):
         trades_column = row.findAll('td')[5:6]
         for item in trades_column:
             amtOfTrades.append(float(item.text))
-
-    print total
 
 def gameScan(gameName):
     pageUrls = pageCounter(gameName)
