@@ -18,7 +18,6 @@ from bs4 import BeautifulSoup
     Using BeautifulSoup, this will scrape a game's user data. Using this data,
     we can rank player performance, and find the trades that they have used.
 """
-totals = [] # so that I can see what percentile their rankings fall into.
 def pageCounter(gameName):
     """
         Find the URLs of all the pages of a game. MarketWatch only allows you to
@@ -197,7 +196,6 @@ player_urls_series = pd.Series(player_urls, index=ranks)
 transaction_urls_series = pd.Series(transaction_urls, index=ranks)
 performance_urls_series = pd.Series(performance_urls, index=ranks)
 numDaysPlayed_series = pd.Series(numDaysPlayed, index=ranks)
-totals_series = pd.Series(totals, index=ranks)
 
 d = {
     'Rank' : ranks_series,
@@ -210,7 +208,6 @@ d = {
     'Transaction URL' : transaction_urls_series,
     'Performance URL' : performance_urls_series,
     'Days Played' : numDaysPlayed_series,
-    'Players in game' : totals_series
     }
 
 df = pd.DataFrame(d)
@@ -239,7 +236,6 @@ df.to_csv("top 500.csv")
 # -----
 df['trades per day'] = df['Trades'] / df['Days Played']
 df['percent returns per trade'] = df['total percent returns'] / df['Trades']
-df['percentile'] = df['Rank'] / df['Players in the game']
 df = df.sort_values(by='trades per day', ascending=False)
 df = df[:250]
 df.to_csv("top 250.csv")
