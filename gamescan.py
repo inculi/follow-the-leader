@@ -8,6 +8,7 @@ import playtime as play # the function I wrote to find the days played of a play
 import numpy as np
 import pandas as pd
 import games as game
+import mmutils as mm
 # import userscan as user
 from moira import moira
 from bs4 import BeautifulSoup
@@ -155,8 +156,10 @@ def gameScan(gameName):
         pageScan(url)
         # time.sleep(1)
         print("Finished " + str(index) + " of " + str(len(pageUrls)))
+################################################################################
 
-### MAIN FUNCTION
+
+###MAIN FUNCTION
 print("Finding games...")
 game.getGameURLs("http://www.marketwatch.com/game/find?sort=NumberOfPlayers&descending=True")
 games = game.removeOld()
@@ -170,6 +173,17 @@ for game in games:
     print("Scanning " + str(game) + ": (" + str(gameCountIndex) + "/" + str(len(games)) + ")")
     gameScan(game)
 del gameCountIndex
+
+
+################################################################################
+
+
+
+
+# +++++++++++++++++++++++++++++++  Debugging  ++++++++++++++++++++++++++++++++++
+# gameScan("hockinson-4")
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 # print our findings
 print("\nRanks:")
@@ -186,16 +200,28 @@ print("\nPerformance URLs:")
 print(len(performance_urls))
 
 # transform lists into Series
-ranks_series = pd.Series(ranks, index=ranks)
-names_series = pd.Series(names, index=ranks)
-networths_series = pd.Series(networths, index=ranks)
-todays_percent_returns_series = pd.Series(todays_percent_returns, index=ranks)
-total_cash_returns_series = pd.Series(total_cash_returns, index=ranks)
-amtOfTrades_series = pd.Series(amtOfTrades, index=ranks)
-player_urls_series = pd.Series(player_urls, index=ranks)
-transaction_urls_series = pd.Series(transaction_urls, index=ranks)
-performance_urls_series = pd.Series(performance_urls, index=ranks)
-numDaysPlayed_series = pd.Series(numDaysPlayed, index=ranks)
+# ranks_series = pd.Series(ranks, index=ranks)
+# names_series = pd.Series(names, index=ranks)
+# networths_series = pd.Series(networths, index=ranks)
+# todays_percent_returns_series = pd.Series(todays_percent_returns, index=ranks)
+# total_cash_returns_series = pd.Series(total_cash_returns, index=ranks)
+# amtOfTrades_series = pd.Series(amtOfTrades, index=ranks)
+# player_urls_series = pd.Series(player_urls, index=ranks)
+# transaction_urls_series = pd.Series(transaction_urls, index=ranks)
+# performance_urls_series = pd.Series(performance_urls, index=ranks)
+# numDaysPlayed_series = pd.Series(numDaysPlayed, index=ranks)
+
+ranks_series = pd.Series(ranks)
+names_series = pd.Series(names)
+networths_series = pd.Series(networths)
+todays_percent_returns_series = pd.Series(todays_percent_returns)
+total_cash_returns_series = pd.Series(total_cash_returns)
+amtOfTrades_series = pd.Series(amtOfTrades)
+player_urls_series = pd.Series(player_urls)
+transaction_urls_series = pd.Series(transaction_urls)
+performance_urls_series = pd.Series(performance_urls)
+numDaysPlayed_series = pd.Series(numDaysPlayed)
+
 
 d = {
     'Rank' : ranks_series,
@@ -240,3 +266,32 @@ df = df.sort_values(by='trades per day', ascending=False)
 df = df[:250]
 df.to_csv("top 250.csv")
 #
+
+# df['consecutive returns'] =
+test = df['Performance URL'].tolist()
+efficiencyScore = []
+for url in test:
+    efficiencyScore.append(mm.getConsecutiveDays(url))
+
+df['eff_score'] = efficiencyScore_series = pd.Series(efficiencyScore, index=df.index)
+# efficiencyScore_series = pd.Series(efficiencyScore, index=df.index)
+# d2 = {
+#     'Efficiency_Score' : efficiencyScore_series
+# }
+# df2 = pd.DataFrame(d2)
+# df = df.append(df2)
+df.to_csv("top 250 eff.csv")
+
+"""
+    Now that we have narrowed it down to the top 250, we should begin narrowing
+    it down to the top 100, so that this pool of 100 can be narrowed down to 50.
+
+    The first step to achieving this is going to be to find out how many
+    consecutive days a person has had positive returns.
+
+    The best way to achieve this might be to separate the differences of elements,
+    and then seperate the list into three different segments:
+        - positive returns
+        - negative returns
+        - no returns (no holdings)
+"""
