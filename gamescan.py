@@ -160,20 +160,20 @@ def gameScan(gameName):
 
 
 ###MAIN FUNCTION
-print("Finding games...")
-game.getGameURLs("http://www.marketwatch.com/game/find?sort=NumberOfPlayers&descending=True")
-games = game.removeOld()
-games = set(games) # remove duplicates
-print("Found " + str(len(games)) + " games.")
-
-# begin scanning games and their users
-gameCountIndex = 0
-for game in games:
-    gameCountIndex += 1
-    print("Scanning " + str(game) + ": (" + str(gameCountIndex) + "/" + str(len(games)) + ")")
-    gameScan(game)
-del gameCountIndex
-
+# print("Finding games...")
+# game.getGameURLs("http://www.marketwatch.com/game/find?sort=NumberOfPlayers&descending=True")
+# games = game.removeOld()
+# games = set(games) # remove duplicates
+# print("Found " + str(len(games)) + " games.")
+#
+# # begin scanning games and their users
+# gameCountIndex = 0
+# for game in games:
+#     gameCountIndex += 1
+#     print("Scanning " + str(game) + ": (" + str(gameCountIndex) + "/" + str(len(games)) + ")")
+#     gameScan(game)
+# del gameCountIndex
+# print("\nScanning complete.")
 
 ################################################################################
 
@@ -181,36 +181,11 @@ del gameCountIndex
 
 
 # +++++++++++++++++++++++++++++++  Debugging  ++++++++++++++++++++++++++++++++++
-# gameScan("hockinson-4")
+gameScan("hockinson-4")
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
-# print our findings
-print("\nRanks:")
-print(len(ranks))
-print("\nNames:")
-print(len(names))
-print("\nCash Returns:")
-print(len(total_cash_returns))
-print("\nPercent Returns:")
-print(len(todays_percent_returns))
-print("\nPlayer URLs:")
-print(len(player_urls))
-print("\nPerformance URLs:")
-print(len(performance_urls))
-
-# transform lists into Series
-# ranks_series = pd.Series(ranks, index=ranks)
-# names_series = pd.Series(names, index=ranks)
-# networths_series = pd.Series(networths, index=ranks)
-# todays_percent_returns_series = pd.Series(todays_percent_returns, index=ranks)
-# total_cash_returns_series = pd.Series(total_cash_returns, index=ranks)
-# amtOfTrades_series = pd.Series(amtOfTrades, index=ranks)
-# player_urls_series = pd.Series(player_urls, index=ranks)
-# transaction_urls_series = pd.Series(transaction_urls, index=ranks)
-# performance_urls_series = pd.Series(performance_urls, index=ranks)
-# numDaysPlayed_series = pd.Series(numDaysPlayed, index=ranks)
-
+# transform the lists into series(es?) so that they can be merged into a
+# pandas dataframe for further manipulation
 ranks_series = pd.Series(ranks)
 names_series = pd.Series(names)
 networths_series = pd.Series(networths)
@@ -222,7 +197,7 @@ transaction_urls_series = pd.Series(transaction_urls)
 performance_urls_series = pd.Series(performance_urls)
 numDaysPlayed_series = pd.Series(numDaysPlayed)
 
-
+# ready the series(es?) into a dictionary which will be changed into dataframe
 d = {
     'Rank' : ranks_series,
     'Name' : names_series,
@@ -236,62 +211,56 @@ d = {
     'Days Played' : numDaysPlayed_series,
     }
 
-df = pd.DataFrame(d)
+df = pd.DataFrame(d) # change dictionary into dataframe
 
+print("Filtering data...")
 # Filter out those with negative returns and with barely any data
 df = df[df['Total Cash Returns'] > 0]
-df = df[df['Days Played'] > 0]
-df = df[df['Trades'] > 1]
+df = df[df['Days Played'] > 10] # So that their eff. score is more accurate
+df = df[df['Trades'] > 1] # because inactive people do not have negative returns
 
-print df
-df.to_csv("unsorted.csv")
+# print df
+# df.to_csv("unsorted.csv")
 
 ### Perform some calculations on the remaining users
 df['total percent returns'] = (df['Total Cash Returns'] / (df['Net Worth'] - df['Total Cash Returns']) * 100)
 df = df.sort_values(by='total percent returns', ascending=False)
 # only take the top 1000 users
 df = df[:1000]
-df.to_csv("top 1000.csv")
+# df.to_csv("top 1000.csv")
 
 # -----
 df['total percent returns per day'] = df['total percent returns'] / df['Days Played']
 df = df.sort_values(by='total percent returns per day', ascending=False)
 df = df[:500]
-df.to_csv("top 500.csv")
+# df.to_csv("top 500.csv")
 
 # -----
 df['trades per day'] = df['Trades'] / df['Days Played']
 df['percent returns per trade'] = df['total percent returns'] / df['Trades']
 df = df.sort_values(by='trades per day', ascending=False)
 df = df[:250]
-df.to_csv("top 250.csv")
+# df.to_csv("top 250.csv")
 #
 
-# df['consecutive returns'] =
+print("Calculating efficiency scores for users...")
 test = df['Performance URL'].tolist()
 efficiencyScore = []
 for url in test:
     efficiencyScore.append(mm.getConsecutiveDays(url))
 
 df['eff_score'] = efficiencyScore_series = pd.Series(efficiencyScore, index=df.index)
-# efficiencyScore_series = pd.Series(efficiencyScore, index=df.index)
-# d2 = {
-#     'Efficiency_Score' : efficiencyScore_series
-# }
-# df2 = pd.DataFrame(d2)
-# df = df.append(df2)
-df.to_csv("top 250 eff.csv")
+# df.to_csv("top 250 eff.csv")
 
-"""
-    Now that we have narrowed it down to the top 250, we should begin narrowing
-    it down to the top 100, so that this pool of 100 can be narrowed down to 50.
+# total aggregate ranking
+df['percent_returns_ranked'] = df['total percent returns'].rank(ascending=1)
+df['percent_returns_per_day_ranked'] = df['total percent returns per day'].rank(ascending=1)
+df['trades_per_day_ranked'] = df['trades per day'].rank(ascending=1)
+df['eff_score_ranked'] = df['eff_score'].rank(ascending=1)
+df['mmScore'] = df['eff_score_ranked'] + df['trades_per_day_ranked'] + df['percent_returns_per_day_ranked'] + df['percent_returns_ranked']
+# df.to_csv("mmScore.csv")
 
-    The first step to achieving this is going to be to find out how many
-    consecutive days a person has had positive returns.
-
-    The best way to achieve this might be to separate the differences of elements,
-    and then seperate the list into three different segments:
-        - positive returns
-        - negative returns
-        - no returns (no holdings)
-"""
+df = df.sort_values(by='mmScore', ascending=False)
+df = df[:50]
+df.to_csv("players.csv")
+print("List of top 50 users stored in 'players.csv'")
