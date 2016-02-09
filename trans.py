@@ -1,19 +1,19 @@
 import requests
 import pandas as pd
+from moira import moira
 import mmutils as mm
-import os.path
 from bs4 import BeautifulSoup
 
-#Output
-symbols = []
-orderdate = []
-transdate = []
-ordertype = []
-orderamount = []
-orderprice = []
-name = ""
+def getTrans(inputUrl):
+    #Output
+    symbols = []
+    orderdate = []
+    transdate = []
+    ordertype = []
+    orderamount = []
+    orderprice = []
 
-def getHistory(inputUrl):
+    ## BEAUTIFULSOUP SETUP
     r = requests.get(inputUrl)
     soup = BeautifulSoup(r.content, "html.parser")
 
@@ -35,55 +35,25 @@ def getHistory(inputUrl):
     # Order Price
     mm.appendData(5,6,orderprice,'money', inputUrl)
 
-    getTrans()
-
-    name = inputUrl.rsplit("?name=", 1)[1]
+    # Find the person's name
+    url = inputUrl
+    name = url.rsplit("?name=", 1)[1]
     name = name.rsplit("&p=", 1)[0]
     name = name.replace("%20", " ")
+    print name
 
-def getSymbols():
-    return symbols
-def getOrderdate():
-    return orderdate
-def getTransdate():
-    return transdate
-def getOrdertype():
-    return ordertype
-def getOrderamount():
-    return orderamount
-def getOrderprice():
-    return orderprice
+    # Pandas setup
+    orderd = {
+        'Stock ticker' : pd.Series(symbols, index=orderdate),
+        'Order date' : pd.Series(orderdate, index=orderdate),
+        'Transaction Date' : pd.Series(transdate, index=orderdate),
+        'Order type' : pd.Series(ordertype, index=orderdate),
+        'Order amount' : pd.Series(orderamount, index=orderdate),
+        'Order price' : pd.Series(orderprice, index=orderdate)
+        }
 
-#url = "http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199"
-#url = "http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=James%20McGregor&p=1491149"
-#getHistory(url)
-
-
-"""
-#Check if file exists, if not, create one
-if not os.path.isfile(filename):
-    print "File found, deleting file"
-    open(filename, 'w').close()
-"""
-
-orderd = {
-    'name' : pd.Series(name, index=orderdate),
-    'symbol' : pd.Series(symbols, index=orderdate),
-    'orderdate' : pd.Series(orderdate, index=orderdate),
-    'transdate' : pd.Series(transdate, index=orderdate),
-    'ordertype' : pd.Series(ordertype, index=orderdate),
-    'orderamount' : pd.Series(orderamount, index=orderdate),
-    'orderprice' : pd.Series(orderprice, index=orderdate)
-    }
-
-def getTrans():
     orderdf = pd.DataFrame(orderd)
-    if os.path.isfile('transactions.csv'):
-        old = pd.read_csv('transactions.csv')
-        new = pd.merge(orderdf, old)
-        new.drop_duplicates(['orderdate'], keep='last')
-        #print orderdf
-        new.to_csv('transactions.csv', headers=False)
-    else:
-        orderdf.to_csv('transactions.csv', headers=False)
-getTrans()
+    print orderdf
+    orderdf.to_csv(name + " transactions.csv")
+
+# getTrans("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
