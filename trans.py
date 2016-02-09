@@ -11,6 +11,7 @@ transdate = []
 ordertype = []
 orderamount = []
 orderprice = []
+name = ""
 
 def getHistory(inputUrl):
     r = requests.get(inputUrl)
@@ -34,6 +35,12 @@ def getHistory(inputUrl):
     # Order Price
     mm.appendData(5,6,orderprice,'money', inputUrl)
 
+    getTrans()
+
+    name = inputUrl.rsplit("?name=", 1)[1]
+    name = name.rsplit("&p=", 1)[0]
+    name = name.replace("%20", " ")
+
 def getSymbols():
     return symbols
 def getOrderdate():
@@ -47,12 +54,10 @@ def getOrderamount():
 def getOrderprice():
     return orderprice
 
-url = "http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199"
-getHistory(url)
+#url = "http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199"
+#url = "http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=James%20McGregor&p=1491149"
+#getHistory(url)
 
-name = url.rsplit("?name=", 1)[1]
-name = name.rsplit("&p=", 1)[0]
-name = name.replace("%20", " ")
 
 """
 #Check if file exists, if not, create one
@@ -72,14 +77,13 @@ orderd = {
     }
 
 def getTrans():
-    getHistory(url)
     orderdf = pd.DataFrame(orderd)
     if os.path.isfile('transactions.csv'):
         old = pd.read_csv('transactions.csv')
         new = pd.merge(orderdf, old)
         new.drop_duplicates(['orderdate'], keep='last')
         #print orderdf
-        new.to_csv('transactions.csv')
+        new.to_csv('transactions.csv', headers=False)
     else:
-        orderdf.to_csv('transactions.csv')
+        orderdf.to_csv('transactions.csv', headers=False)
 getTrans()

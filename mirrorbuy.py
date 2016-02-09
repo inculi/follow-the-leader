@@ -20,7 +20,8 @@ orderamount = []
 orderprice = []
 allitems = []
 
-t.getHistory("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
+#t.getHistory("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
+url = "http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=James%20McGregor&p=1491149"
 
 #Log in to marketwatch
 token = moira.get_token(username, password)
@@ -71,6 +72,7 @@ def readData():
 readData()
 
 while True:
+    t.getHistory(url)
     checkNew('symbol')
     checkNew('orderdate')
     checkNew('transdate')
@@ -78,7 +80,7 @@ while True:
     checkNew('orderamount')
     checkNew('orderprice')
     readData()
-    print todo['symbol']
+    print toDo['symbol']
 
 """
     mmutils.printAll(symbols)
