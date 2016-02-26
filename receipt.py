@@ -3,7 +3,7 @@ import os
 import requests
 import datetime
 import subprocess
-import pandas as pd
+# import pandas as pd
 import mmutils as mm
 from moira import moira
 from bs4 import BeautifulSoup
@@ -126,7 +126,7 @@ def makeTime(dateString):
 ticketStrings = []
 f = open('transactions.log','a') # for saving transactions
 
-def makeTicket(elementIndex):
+def makeTicket(elementIndex,inputUrl):
     # make it go for however many tickers we have
     # for x in xrange(0,len(symbols)):
     ticketString = str(symbols[elementIndex]) + ';' + str(orderdate[elementIndex]) + ';' + str(transdate[elementIndex]) + ';' + str(ordertype[elementIndex]) + ';' + str(orderamount[elementIndex]) + ';' + str(orderprice[elementIndex])
@@ -142,5 +142,17 @@ def makeTicket(elementIndex):
             print("Adding new transaction...")
             ticketEntry = str(name[0]) + " --- " + str(output)
             f.write(ticketEntry) # write the name and ticket to the file.
+
+            # I am fairly certain that it should work as is, but just in case...
+            # if ordertype[elementIndex] == 'Buy':
+            #     oType = 'Buy'
+            # if ordertype[elementIndex] == 'Sell':
+            #     oType = 'Sell'
+            # if ordertype[elementIndex] == 'Short':
+            #     oType = 'Short'
+            # if ordertype[elementIndex] == 'Cover':
+            #     oType = 'Cover'
+            import buy
+            buy.order(inputUrl,symbols[elementIndex],orderamount[elementIndex],ordertype[elementIndex])
 
 getTrans("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
