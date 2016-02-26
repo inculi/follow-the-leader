@@ -43,11 +43,6 @@ def buyStock(token, game, action, tickerSymbol, amt, times):
     print("Transaction complete.")
 
 def getNetWorth():
-    username = 'labresearch9@gmail.com'
-    password = 'qazwsxedcrf'
-    game = 'meisenheimer'
-    token = moira.get_token(username, password)
-
     money = moira.get_portfolio_data(token,game)
     return float(money['net_worth'])
 
