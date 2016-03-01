@@ -2,11 +2,12 @@
 from bs4 import BeautifulSoup
 from moira import moira
 import re
+import requests
 
 # set up moira
 username = 'labresearch9@gmail.com'
 password = 'qazwsxedcrf'
-game = 'meisenheimer'
+game = 'moiratestone'
 token = moira.get_token(username, password)
 
 def searchStock(tickerSymbol,option):
@@ -38,12 +39,32 @@ def searchStock(tickerSymbol,option):
 def buyStock(token, game, action, tickerSymbol, amt, times):
     print("Buying...")
     for x in xrange(0,times):
-        # moira.order(token, game, action, tickerSymbol, amt)
-        print("moira.order(" + str(token) + str(game) + str(action) + str(tickerSymbol) + str(amt) + ")")
+        print("moira.order(token, game, " + str(action) + ", " + str(tickerSymbol) + ", " + str(amt) + ")")
+        orderStatus = moira.order(token, game, 'Buy', 'STOCK-XASQ-NKE', 1000000)
+        if orderStatus[0] == True:
+            print("Order successful.")
+            break
+        else:
+            # Volume restriction bypass
+            print("\nOrder Failed. Fixing now...")
+            # find the legal transaction limit
+            newAmount = int((str(orderStatus[1]).rsplit("volume restriction ", 1)[1]).rsplit(".", 1)[0])
+
+            times = amt/newAmount # the amount of legal transactions we can make
+            remainder =  amt - (newAmount * (amt/newAmount)) # excess amount
+
+            # break up the large order into smaller, legal transactions
+            for x in range(times):
+                moira.order(token, game, action, tickerSymbol, newAmount)
+
+            # order the excess amount
+            moira.order(token, game, action, tickerSymbol, remainder)
+
     print("Transaction complete.")
 
 def getNetWorth():
     money = moira.get_portfolio_data(token,game)
+    # print money
     return float(money['net_worth'])
 
 def order(inputUrl,inputTicker,amount,ordType):
@@ -51,16 +72,16 @@ def order(inputUrl,inputTicker,amount,ordType):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
 
+    # get our two networths
     networth_tag = soup.select("li span")
     networth = float(networth_tag[1].text.replace("$","").replace(",",""))
-
     myNetWorth = getNetWorth()
 
     symbol = searchStock(inputTicker,'name')
     price = searchStock(inputTicker,'price')
 
     # amoutToSpend = (price * ((myNetWorth/networth) * amount))
-    amount = ((myNetWorth/networth) * amount) # change the amount to reflect our $
+    amount = int(round((myNetWorth/networth) * amount)) # change the amount to reflect our $
 
     # amount of times the for loop will run. Eventually this will have to be changed,
     # as the volume restrictions prevent most orders from going through.

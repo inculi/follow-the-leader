@@ -75,3 +75,9 @@ def getConsecutiveDays(url):
 def printAll(variable):
     for item in variable:
         print item
+
+def populate(list,element,amount):
+    for x in range(0,amount):
+        list.append(element)
+
+#
