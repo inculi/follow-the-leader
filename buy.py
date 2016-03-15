@@ -40,7 +40,7 @@ def buyStock(token, game, action, tickerSymbol, amt, times):
     print("Buying...")
     for x in xrange(0,times):
         print("moira.order(token, game, " + str(action) + ", " + str(tickerSymbol) + ", " + str(amt) + ")")
-        orderStatus = moira.order(token, game, 'Buy', 'STOCK-XASQ-NKE', 1000000)
+        orderStatus = moira.order(token, game, str(action), str(tickerSymbol), str(amt))
         if orderStatus[0] == True:
             print("Order successful.")
             break

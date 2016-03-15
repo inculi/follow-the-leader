@@ -92,6 +92,16 @@ amtOfTrades = []
 numDaysPlayed = []
 
 def pageScan(pageurl):
+    """
+        Parses a page of a game, and collects player information-- storing it in
+        lists to later be transformed into pandas dataframes.
+
+    :input:             The URL of a given game.
+
+    :output:            Returns a list of page URLs.
+
+    :param pageurl:     The URL of a given game. Is inputted from gameScan().
+    """
     # url = "http://www.marketwatch.com/game/bijans/ranking"
     # setting up BeautifulSoup
     url = pageurl

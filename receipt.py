@@ -202,7 +202,23 @@ def makeTicket(elementIndex,inputUrl):
         (out, err) = proc.communicate()
         if out == "": # grep will return empty if it can't find a matching hash.
             print("Adding new transaction...")
-            ticketEntry = str(name[0]) + " --- " + str(hashString)
+            ticketEntry = (
+            str(name[0]) +
+            ' --- ' +
+            str(symbols[elementIndex]) +
+            ' --- ' +
+            str(orderprice[elementIndex]) +
+            ' --- ' +
+            str(orderamount[elementIndex]) +
+            ' --- ' +
+            str(ordertype[elementIndex]) +
+            ' --- ' +
+            str(orderdate[elementIndex]) +
+            ' --- ' +
+            str(transdate[elementIndex]) +
+            ' --- ' +
+            str(hashString))
+
             f.write(ticketEntry) # write the name and ticket to the file.
 
             # I am fairly certain that it should work as is, but just in case...
