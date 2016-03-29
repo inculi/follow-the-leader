@@ -10,25 +10,31 @@ import mmutils as mm
 from moira import moira
 from bs4 import BeautifulSoup
 
-debugMode = True
 
-#Output
-symbols = []
-orderdate = []
-transdate = []
-ordertype = []
-orderamount = []
-orderprice = []
-name = []
+debugMode = True # set to true to see current actions
 
-def getTrans(inputUrl):
-    # Find the person's name
+def makeName(inputUrl):
     url = inputUrl
     nameRe = url.rsplit("?name=", 1)[1]
     nameRe = nameRe.rsplit("&p=", 1)[0]
     nameRe = nameRe.replace("%20", " ")
-    name.append(nameRe)
-    # print("Finding transactions of " + name[0] + "...")
+
+    return nameRe
+
+def getTrans(inputUrl):
+    transDict = {}
+
+    symbols = []
+    orderdate = []
+    transdate = []
+    ordertype = []
+    orderamount = []
+    orderprice = []
+
+    # Find the person's name
+    transDict['name'] = makeName(inputUrl)
+    print("Finding transactions of " + transDict['name'] + "...")
+
     ## BEAUTIFULSOUP SETUP
     r = requests.get(inputUrl)
     soup = BeautifulSoup(r.content, "html.parser")
@@ -51,26 +57,17 @@ def getTrans(inputUrl):
     # Order Price
     mm.appendData(5,6,orderprice,'money', inputUrl)
 
-    # So that I can place the individual's name next to their transaction (so
-    # that transactions.log is better organized)
-    # mm.populate(names,name,len(symbols))
+    # package all of the data into a nice dictionary.
+    transDict['symbols'] = symbols
+    transDict['orderdate'] = orderdate
+    transDict['transdate'] = transdate
+    transDict['ordertype'] = ordertype
+    transDict['orderamount'] = orderamount
+    transDict['orderprice'] = orderprice
 
-    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    #                      DEBUGGING - show the data we have
-    # mm.printAll(symbols)
-    # mm.printAll(orderdate)
-    # mm.printAll(transdate)
-    # mm.printAll(ordertype)
-    # mm.printAll(orderamount)
-    # mm.printAll(orderprice)
-    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    return transDict
 
-    # old way of doing it //IGNORE
-    # times = []
-    # for date in orderdate:
-    #     times.append(makeTime(date))
-    #     print("There are now " + str(len(times)) + " in times[]")
-
+def performTimeLogic(transDict):
     """
         To save system resources, we are only going to check the order status
         of transactions made in the last 5 minutes. In order to perform a
@@ -93,7 +90,7 @@ def getTrans(inputUrl):
         must take place after we have secured a listing of the past 5 minutes
         transactions.
     """
-
+    orderdate = transDict['orderdate']
     orderQueue = [] # will hold the place of the elementIndex of order components
                     # this will later be .reverse() so that we can process orders
                     # backwards (chronologically).
@@ -130,28 +127,8 @@ def getTrans(inputUrl):
             dprint(debugMode,"\nDone finding times. Preparing orders/Exiting.\n") # for debugging
             break
     dprint(debugMode,"There are " + str(len(orderQueue)) + " order(s) to copy.\n")
-    if len(orderQueue) == 0:
-        dprint(debugMode,"clearing")
-        clearGlobalLists()
-    else:
-        # print(orderQueue)
-        orderQueue.reverse() # begin chronologically
-        # print(orderQueue)
 
-        # old way of doing it...
-        # for x in xrange(0,len(orderQueue)):
-        #     makeTicket(orderQueue[x],inputUrl)
-
-
-        for orderNumber in orderQueue:
-            makeTicket(orderNumber, inputUrl)
-        clearGlobalLists()
-
-def makeHash(inputString):
-    command = "echo -n \"" + inputString + "\" | md5 -q"
-    output = subprocess.check_output(command, shell=True)
-
-    return output
+    return orderQueue
 
 def makeTime(dateString):
     txt = dateString
@@ -178,6 +155,7 @@ def makeTime(dateString):
         minute=int(m.group(5))
         meridiem=m.group(6)
 
+    # there will most likeley be a bug here at 12am, but the market isn't open then...
     if meridiem == 'p' and hour != 12:
         hour = int(hour)+12
 
@@ -185,79 +163,77 @@ def makeTime(dateString):
 
     return time
 
+def makeHash(inputString):
+    command = "echo -n \"" + inputString + "\" | md5 -q"
+    output = subprocess.check_output(command, shell=True)
+
+    return output
+
 f = open('transactions.log','a') # for saving transactions
 
-def makeTicket(elementIndex,inputUrl):
-    ticketStrings = []
-    # make it go for however many tickers we have
-    # for x in xrange(0,len(symbols)):
-    ticketString = str(symbols[elementIndex]) + ';' + str(orderdate[elementIndex]) + ';' + str(transdate[elementIndex]) + ';' + str(ordertype[elementIndex]) + ';' + str(orderamount[elementIndex]) + ';' + str(orderprice[elementIndex])
-    ticketStrings.append(ticketString)
+def makeTicket(transDict,elementIndex,inputUrl):
 
-    for ticket in ticketStrings:
-        hashString = makeHash(ticket)
+    ticketString = (
+        str(transDict['name']) +
+        ' --- ' +
+        str(transDict['symbols'][elementIndex]) +
+        ' --- ' +
+        str(transDict['orderprice'][elementIndex]) +
+        ' --- ' +
+        str(transDict['orderamount'][elementIndex]) +
+        ' --- ' +
+        str(transDict['ordertype'][elementIndex]) +
+        ' --- ' +
+        str(transDict['orderdate'][elementIndex]) +
+        ' --- ' +
+        str(transDict['transdate'][elementIndex]))
 
-        # search (grep) the transactions file to see if this order has been placed
-        proc = subprocess.Popen(["cat transactions.log | grep -i " + hashString], stdout=subprocess.PIPE, shell=True)
-        (out, err) = proc.communicate()
-        if out == "": # grep will return empty if it can't find a matching hash.
-            print("Adding new transaction...")
-            ticketEntry = (
-            str(name[0]) +
-            ' --- ' +
-            str(symbols[elementIndex]) +
-            ' --- ' +
-            str(orderprice[elementIndex]) +
-            ' --- ' +
-            str(orderamount[elementIndex]) +
-            ' --- ' +
-            str(ordertype[elementIndex]) +
-            ' --- ' +
-            str(orderdate[elementIndex]) +
-            ' --- ' +
-            str(transdate[elementIndex]) +
-            ' --- ' +
-            str(hashString))
+    hashString = makeHash(ticketString)
 
-            f.write(ticketEntry) # write the name and ticket to the file.
+    # search (grep) the transactions file to see if this order has been placed
+    proc = subprocess.Popen(["cat transactions.log | grep -i " + hashString], stdout=subprocess.PIPE, shell=True)
+    (out, err) = proc.communicate()
+    if out == "": # grep will return empty if it can't find a matching hash.
+        print("Adding new transaction...")
 
-            # I am fairly certain that it should work as is, but just in case...
-            # if ordertype[elementIndex] == 'Buy':
-            #     oType = 'Buy'
-            # if ordertype[elementIndex] == 'Sell':
-            #     oType = 'Sell'
-            # if ordertype[elementIndex] == 'Short':
-            #     oType = 'Short'
-            # if ordertype[elementIndex] == 'Cover':
-            #     oType = 'Cover'
-            import buy
-            buy.order(inputUrl,symbols[elementIndex],orderamount[elementIndex],ordertype[elementIndex])
-        else:
-            dprint(debugMode,"Order already processed.")
+        ticketEntry = ticketString + ' --- ' + str(hashString)
+        f.write(ticketEntry) # write the name and ticket to the file.
 
-def clearGlobalLists():
-    # clear global lists for next iteration (assuming there is a
-    # " while True: getTrans() " looping at the end of this file)
-    symbols[:] = []
-    orderdate[:] = []
-    transdate[:] = []
-    ordertype[:] = []
-    orderamount[:] = []
-    orderprice[:] = []
-    name[:] = []
+        import buy
+        buy.order(inputUrl,transDict['symbols'][elementIndex],transDict['orderamount'][elementIndex],transDict['ordertype'][elementIndex])
+
+    else:
+        dprint(debugMode,"Order already processed.")
+
+def copyTrades(inputUrl):
+    # get the necessary data from a user's transaction <table>
+    transDict = getTrans(inputUrl)
+
+    # make a list of trades made in the past 5 minutes (according to the <table>)
+    orderQueue = performTimeLogic(transDict)
+
+    """If there were any orders made in the past 5 minutes, check to see if they
+    have already been ordered. If they haven't been ordered, order them and
+    generate a receipt."""
+    if len(orderQueue) == 0:
+        dprint(debugMode,"No orders. Clearing.")
+    else:
+        orderQueue.reverse() # begin chronologically
+
+        for orderNumber in orderQueue:
+            makeTicket(transDict, orderNumber, inputUrl)
+
+
+
 
 # while True:
 #     print("Scanning")
 #     getTrans("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=The%20Cooler%20James%20McGregor&p=1510238")
 #     # time.sleep(30)
 
-
-# Good ol' Andrew boy
-# getTrans("http://www.marketwatch.com/game/summit-high-school-economics-club-2015-2016/portfolio/transactionhistory?name=Andrew%20Hollenbaugh&p=1215199")
-
-
 # # James Account
-getTrans("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=The%20Cooler%20James%20McGregor&p=1510238")
+for n in range(5):
+    copyTrades("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=The%20Cooler%20James%20McGregor&p=1510238")
 
 
 
