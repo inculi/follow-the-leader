@@ -11,7 +11,7 @@ from moira import moira
 from bs4 import BeautifulSoup
 
 
-debugMode = True # set to true to see current actions
+debugMode = False # set to true to see current actions
 
 def makeName(inputUrl):
     url = inputUrl
@@ -49,7 +49,7 @@ def getTrans(inputUrl):
     mm.appendData(2,3,transdate,'str', inputUrl)
 
     # Order Type
-    mm.appendData(3,4,ordertype,'str', inputUrl)
+    mm.appendData(3,4,ordertype,'orderType', inputUrl)
 
     # Order Amount (number of shares)
     mm.appendData(4,5,orderamount,'float', inputUrl)
@@ -169,9 +169,8 @@ def makeHash(inputString):
 
     return output
 
-f = open('transactions.log','a') # for saving transactions
-
 def makeTicket(transDict,elementIndex,inputUrl):
+    f = open('transactions.log','a') # for saving transactions
 
     ticketString = (
         str(transDict['name']) +
@@ -193,11 +192,13 @@ def makeTicket(transDict,elementIndex,inputUrl):
     # search (grep) the transactions file to see if this order has been placed
     proc = subprocess.Popen(["cat transactions.log | grep -i " + hashString], stdout=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
+
     if out == "": # grep will return empty if it can't find a matching hash.
         print("Adding new transaction...")
 
         ticketEntry = ticketString + ' --- ' + str(hashString)
         f.write(ticketEntry) # write the name and ticket to the file.
+        f.close()
 
         import buy
         buy.order(inputUrl,transDict['symbols'][elementIndex],transDict['orderamount'][elementIndex],transDict['ordertype'][elementIndex])
@@ -223,24 +224,7 @@ def copyTrades(inputUrl):
         for orderNumber in orderQueue:
             makeTicket(transDict, orderNumber, inputUrl)
 
-
-
-
-# while True:
-#     print("Scanning")
-#     getTrans("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=The%20Cooler%20James%20McGregor&p=1510238")
-#     # time.sleep(30)
-
 # # James Account
-for n in range(5):
-    copyTrades("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=The%20Cooler%20James%20McGregor&p=1510238")
-
-
-
-
-
-
-
-
-
-#
+while True:
+    copyTrades("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=Sheikh%20Hamdan%20bin%20Mohammed%20Al%20Maktoum&p=895646")
+    # copyTrades("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=The%20Cooler%20James%20McGregor&p=1510238")

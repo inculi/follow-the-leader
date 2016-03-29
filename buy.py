@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from moira import moira
 import re
 import requests
-import pickle
+import cPickle as pickle
 
 # set up moira
 username = 'labresearch9@gmail.com'
@@ -93,12 +93,14 @@ def getOthersHoldingsAmount(inputUrl,inputTicker,orderType):
             holdingAmount = int(holdingAmount.rsplit(" / ", 1)[0])
             return holdingAmount
         else:
-            name = makeName(inputUrl=)
+            name = makeName(inputUrl)
             print(name + " does not own " + inputTicker + " in '" + orderType + "' form.")
             return 0
 
 def addHolding(inputTicker,orderType,amount):
-    holdings = pickle.load( open( "holdings.log", "r" ) ) # load holdings dictionary
+    try: holdings = pickle.load( open( "holdings.log", "rb" ) ) # load holdings dictionary
+    except EOFError: holdings = {} # or whatever you want
+
     keyString = inputTicker + ' ' + orderType # ex: holdings['AAPL Buy']
 
     if keyString in holdings:
@@ -106,12 +108,14 @@ def addHolding(inputTicker,orderType,amount):
         holdings[keyString] += amount
     else:
         # if an entry does not exist for AAPL, create a new one with the current amount.
-        holdings = { keyString : amount }
+        holdings[keyString] = amount
 
-    pickle.dump( holdings, open( "holdings.log", "w" ) ) # save
+    pickle.dump( holdings, open( "holdings.log", "wb" ) ) # save
 
 def getHoldings(inputTicker,orderType):
-    holdings = pickle.load( open( "holdings.log", "r" ) ) # load holdings dictionary
+    try: holdings = pickle.load( open( "holdings.log", "rb" ) ) # load holdings dictionary
+    except EOFError: holdings = {} # or whatever you want
+
     keyString = inputTicker + ' ' + orderType # ex: holdings['AAPL Buy']
 
     if keyString in holdings:
@@ -119,9 +123,10 @@ def getHoldings(inputTicker,orderType):
         return holdings[keyString]
     else:
         print("I do not own any '" + inputTicker + "' in '" + orderType + "'.")
-        return 0
+        return None
 
 def order(inputUrl,inputTicker,amount,ordType):
+    print('ordType: ', ordType)
     url = inputUrl
     r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
@@ -143,11 +148,21 @@ def order(inputUrl,inputTicker,amount,ordType):
         amount = int(round((myNetWorth/networth) * amount)) # change the amount to reflect our $
     else:
         # find the amount of inputTicker a given user owns.
-        if orderType.lower() == 'sell':
+        if ordType.lower() == 'sell':
              # to sell, we have to use the amount we bought.
             currentHoldingsAmount = getOthersHoldingsAmount(inputUrl,inputTicker,'Buy')
+            if currentHoldingsAmount == None:
+                # if he sold all of his shares, he will have none left.
+                # if he has none left, getOthersHoldingsAmount() will return: None
+                # I cannot divide a float by a noneType, therefore I must make
+                # the final fraction equivalent to 1 so I can sell 100% of my owned amt.
+                currentHoldingsAmount = amount
+
             myCurrentHoldingsAmount = getHoldings(inputTicker,'Buy')
-        elif orderType.lower() == 'cover':
+            if myCurrentHoldingsAmount == None:
+                return 1
+
+        elif ordType.lower() == 'cover':
              # to cover, we have to use the amount we shorted.
             currentHoldingsAmount = getOthersHoldingsAmount(inputUrl,inputTicker,'Short')
             myCurrentHoldingsAmount = getHoldings(inputTicker,'Short')
@@ -159,4 +174,11 @@ def order(inputUrl,inputTicker,amount,ordType):
     times = 1
 
     buyStock(token, game, ordType, symbol, amount, times)
-    addHolding(inputTicker,orderType,amount)
+    if (ordType.lower() == 'sell'):
+        negativeAmount = -1 * amount
+        addHolding(inputTicker,'Buy',negativeAmount)
+    elif (ordType.lower() == 'cover'):
+        negativeAmount = -1 * amount
+        addHolding(inputTicker,'Short',negativeAmount)
+    else:
+        addHolding(inputTicker,ordType,amount)
