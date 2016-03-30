@@ -14,11 +14,22 @@ from bs4 import BeautifulSoup
 debugMode = False # set to true to see current actions
 
 def makeName(inputUrl):
-    url = inputUrl
-    nameRe = url.rsplit("?name=", 1)[1]
+    nameRe = inputUrl.rsplit("?name=", 1)[1]
     nameRe = nameRe.rsplit("&p=", 1)[0]
-    nameRe = nameRe.replace("%20", " ")
+    nameRe = nameRe.replace("%20", " ").replace("%3F","?")
 
+    return nameRe
+
+def makeGameName(inputUrl):
+    nameRe = inputUrl.rsplit(".com/game/", 1)[1]
+    nameRe = nameRe.rsplit("/portfolio/", 1)[0]
+    # thought: I think I'm going to leave the dashes in the name, for the sake
+    # of being able to manipulate holdings.log with better ease...
+
+    return nameRe
+
+def makePlayerId(inputUrl):
+    nameRe = inputUrl.rsplit("&p=", 1)[1]
     return nameRe
 
 def getTrans(inputUrl):
@@ -33,6 +44,7 @@ def getTrans(inputUrl):
 
     # Find the person's name
     transDict['name'] = makeName(inputUrl)
+    transDict['game'] = makeGameName(inputUrl)
     print("Finding transactions of " + transDict['name'] + "...")
 
     ## BEAUTIFULSOUP SETUP
@@ -116,7 +128,7 @@ def performTimeLogic(transDict):
         # go for as long as we are in the current date.
         if isStillSameDay:
             delta = now - time
-            if delta < datetime.timedelta(minutes=5):
+            if delta < datetime.timedelta(minutes=1):
                 dprint(debugMode,"Order added to queue.")
                 orderQueue.append(int(timeIndex))
                 # makeTicket(timeIndex,inputUrl)
@@ -225,6 +237,8 @@ def copyTrades(inputUrl):
             makeTicket(transDict, orderNumber, inputUrl)
 
 # # James Account
-while True:
-    copyTrades("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=Sheikh%20Hamdan%20bin%20Mohammed%20Al%20Maktoum&p=895646")
     # copyTrades("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=The%20Cooler%20James%20McGregor&p=1510238")
+
+While True:
+    copyTrades("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=Sheikh%20Hamdan%20bin%20Mohammed%20Al%20Maktoum&p=895646")
+    time.sleep(30)
