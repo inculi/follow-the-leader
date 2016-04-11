@@ -135,10 +135,12 @@ def buyTrades(deltaHoldings,inputUrl):
             # change the orderType to its opposite so we sell instead of Buy.
             ordType = oppositeOrd(position)
             amount = abs(deltaHoldings[item])
+            print(str(ordType) + " " + str(amount) + " " + str(ticker))
             buy.order(inputUrl,ticker,amount,ordType)
         else:
             # deltaHoldings will otherwise be positive, so buy normally.
             amount = deltaHoldings[item]
+            print(str(position) + " " + str(amount) + " " + str(ticker))
             buy.order(inputUrl,ticker,amount,position)
 
 def oppositeOrd(orderType):
@@ -154,6 +156,9 @@ def oppositeOrd(orderType):
         print("I don't know the opposite of this order.")
         return 1
 
-url = "http://www.marketwatch.com/game/moiratestone/portfolio/holdings?name=Sheikh%20Hamdan%20bin%20Mohammed%20Al%20Maktoum&p=895646"
-deltaHoldings = findTradeDifference(url)
-buyTrades(deltaHoldings,url)
+url = "http://www.marketwatch.com/game/invest-until-you-die/portfolio/holdings?name=Colin%20Rhoades&p=1045616"
+while True:
+    # print(datetime.datetime.now())
+    deltaHoldings = findTradeDifference(url)
+    if deltaHoldings != 0:
+        buyTrades(deltaHoldings,url)

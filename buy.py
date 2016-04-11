@@ -54,7 +54,7 @@ def searchStock(tickerSymbol,option):
         m = rg.search(searchData)
         if m:
             float1=m.group(1)
-        return float1
+        return float(float1)
 
 def buyStock(token, game, action, tickerSymbol, amt, times):
     print("Buying...")
@@ -272,3 +272,13 @@ def order(inputUrl,inputTicker,amount,ordType):
         addHolding(inputUrl,inputTicker,'Short',negativeAmount)
     else:
         addHolding(inputUrl,inputTicker,ordType,amount)
+
+# ============================   OPTIONAL MAIN   ===============================
+# sellPlayerHoldings("http://www.marketwatch.com/game/moiratestone/portfolio/transactionhistory?name=Sheikh%20Hamdan%20bin%20Mohammed%20Al%20Maktoum&p=895646")
+
+
+
+
+
+
+#
